@@ -7,35 +7,37 @@ from PIL import Image
 
 from anno import ImageAnnotation
 
-# TODO RGBA, keep A for 
+# TODO RGBA
+# pick what you need in part2ind.py -> # [person]
 pick_parts = {
-    '':(),
-    # 'hair': (255, 255, 255),
-    'head': (255, 255, 255),
-    'torso': (255, 255, 255),
+    '': 0,
 
-    'luleg': (255, 255, 255),               	# left upper leg
-    'ruleg': (255, 255, 255),               	# right upper leg
+    'head': 1,
+    'neck': 2,
+    'torso': 2,
 
-    'llleg': (255, 255, 255),               	# left lower leg
-    'rlleg': (255, 255, 255),               	# right lower leg
+    'luleg': 3,               	    # left upper leg
+    'ruleg': 4,               	    # right upper leg
 
-    'lfoot': (255, 255, 255),               	# left foot
-    'rfoot': (255, 255, 255),               	# right foot
+    'llleg': 5,               	    # left lower leg
+    'rlleg': 6,               	    # right lower leg
 
-    'luarm': (255, 255, 255),                   # left upper arm
-    'ruarm': (255, 255, 255),                   # right upper arm
+    'lfoot': 7,               	    # left foot
+    'rfoot': 8,               	    # right foot
 
-    'llarm': (255, 255, 255),                   # left lower arm
-    'rlarm': (255, 255, 255),                   # right lower arm
+    'luarm': 9,                     # left upper arm
+    'ruarm': 10,                    # right upper arm
 
-    'lhand': (255, 255, 255),                   # left hand
-    'rhand': (255, 255, 255),                   # right hand
+    'llarm': 11,                    # left lower arm
+    'rlarm': 12,                    # right lower arm
+
+    'lhand': 13,                    # left hand
+    'rhand': 14,                    # right hand
 }
 
 
 if __name__ == '__main__':
-    file_path = r'D:\pascal_person_part_24\seg_anno'
+    file_path = r'D:\dataset/pascal_person_part_revision_14\seg_anno'
     for matrix_file in glob.glob(os.path.join(file_path, '*.mat')):
         file_name = os.path.basename(matrix_file).split('.')[0]
         image_file = os.path.join(file_path, "{}.jpg".format(file_name))
@@ -46,19 +48,18 @@ if __name__ == '__main__':
         an = ImageAnnotation(image_file, matrix_file)
 
         h, w = Image.open(image_file).size
-        img = np.zeros((w, h))
+        img = np.full((w, h), fill_value=0)
 
         for p in pick_parts.keys():
             for _object in an.objects:
                 if _object.class_name == 'person':
-                        for parts in _object.parts:
-                            if parts.part_name == p:
+                    for parts in _object.parts:
+                        if parts.part_name == p:
+                            idx_part = pick_parts[parts.part_name]
+                            img = np.where(parts.mask, idx_part, img)
 
-                    # if parts.part_name in pick_parts.keys():
-                                img = np.where(parts.mask, (list(pick_parts.keys()).index(parts.part_name))*15, img)
-
-        im = Image.fromarray(img).convert('RGBA')
-        print(matrix_file)
+        im = Image.fromarray(img)
+        print(np.max(im), file_name)
         im.save(os.path.join(file_path, "{}.png".format(file_name)))
         # im.show()
         # quit()
